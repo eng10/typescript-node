@@ -27,26 +27,30 @@ model User {
   Product   Product[]
   role      role      @default(USER)
   isAdmin   Boolean   @default(false)
+  Cart      Cart?
 }
 
 model Product {
-  id           Int      @id @default(autoincrement())
+  id           Int        @id @default(autoincrement())
   productName  String
   productPrice Decimal
   Desc         String
   shortDesc    String?
-  CreatedAt    DateTime @default(now())
-  UpdatedAt    DateTime @updatedAt
-  isDeleted    Boolean  @default(false)
+  stock        Int
+  CreatedAt    DateTime   @default(now())
+  UpdatedAt    DateTime   @updatedAt
+  isDeleted    Boolean    @default(false)
+  isPublish    Boolean    @default(false)
   userId       Int
-  User         User     @relation(fields: [userId], references: [id])
-  cateId        Int
-  cat          category @relation(fields: [cateId], references: [catId])
+  User         User       @relation(fields: [userId], references: [id])
+  cateId       Int
+  cat          category   @relation(fields: [cateId], references: [catId])
+  cartItem     cartItem[]
 }
 
 model category {
   catId     Int      @id @default(autoincrement())
-  catname   String
+  catname   String  @unique
   catdesc   String
   catimage  String
   createAt  DateTime @default(now())
@@ -54,4 +58,29 @@ model category {
   isDeleted Boolean  @default(false)
 
   Product Product[]
+}
+
+model Cart {
+  id          String     @id @default(uuid())
+  userId      Int        @unique
+  User        User       @relation(fields: [userId], references: [id])
+  cartItem    cartItem[]
+  createdAt   DateTime   @default(now())
+  lastUpdated DateTime   @updatedAt
+}
+
+// make cartItem
+// one to many relation
+// columns -> cartItemId, itemId, cartId
+
+model cartItem {
+  id          Int      @id @default(autoincrement())
+  // cart relationship
+  cartId      String
+  Cart        Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  // product relatioship
+  productId   Int
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  lastUpdated DateTime @updatedAt
 }

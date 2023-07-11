@@ -46,7 +46,7 @@ export const decodeToken = (req:customerUserRequest,res : Response,next : NextFu
         if(!token)
         return res.json({
             isSuccess : false,
-            message : "you are not Login please Login to create it"
+            message : "u don't have Token"
         });
 
 
@@ -60,7 +60,7 @@ export const decodeToken = (req:customerUserRequest,res : Response,next : NextFu
         res.json(
             {
                 isSuccess : false,
-                message  : "you are not Login please Login to create it".toUpperCase()
+                message  : "u don't have Token".toUpperCase()
             }
         )
     }

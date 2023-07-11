@@ -11,6 +11,7 @@ interface product{
     Desc : string,
     shortDesc : string
     cateId : number
+    stock : number
 
 }
 
@@ -36,7 +37,31 @@ export const getAll = async (req: customerUserRequest, res: Response)=>{
 
   res.json({
     message : "Success",
-    products,
+    result:[...products],
+  })
+  console.log(products)
+} 
+export const allpublished = async (req: customerUserRequest, res: Response)=>{
+  const products = await prisma.product.findMany({
+    where: {
+       isDeleted : false,
+       isPublish : true
+    },
+    include: {
+        User:{
+            select: {
+                id: true,
+                firstName:true,
+                lastName: true,
+                createdAt : true
+            }
+        }
+    }
+  })
+
+  res.json({
+    message : "Success",
+    result:[...products],
   })
   console.log(products)
 } 
@@ -70,7 +95,7 @@ export const oneUser = async (req: customerUserRequest, res:Response)=>{
   })
 
   if(!item){
-    res.json({
+  return  res.json({
       message : "your Product is not on the databse",
       isSuccess : false
     })
@@ -96,9 +121,17 @@ export const oneUser = async (req: customerUserRequest, res:Response)=>{
 export const createPro = async(req:customerUserRequest,res:Response)=>{
   
    try {
-    const  {productName,productPrice,Desc,shortDesc,cateId} = req.body as product
+
+    if(!req.user?.isAdmin){
+      return res.json({
+        isSuccess : false,
+        message : "Uh No, U not allowed!!!!!!"
+      })
+    }
+
+    const  {productName,productPrice,Desc,shortDesc,cateId,stock} = req.body as product
     
-    if(!productName||!productPrice||!Desc||!shortDesc||!cateId){
+    if(!productName||!productPrice||!Desc||!shortDesc||!cateId||!stock){
      return res.json({
         message : "please complete data",
         isSuccess : false
@@ -108,16 +141,29 @@ export const createPro = async(req:customerUserRequest,res:Response)=>{
     //newProduct
 
     const newpro = await prisma.product.create({
+
+      
+
       data: {
         productName,
         userId: req.user?.userId!,
         Desc,
         productPrice,
         shortDesc,
-        cateId
+        cateId,
+        stock
       },
+      include :{
+        User:{
+          select : {
+            id : true,
+            firstName : true,
+            lastName: true,
+            isAdmin: true
+          }
+        }
+      }
     }); 
-    console.log(req.user?.userId,"hellowold!")  
 
 res.json({
   isSuccess : true,
@@ -136,9 +182,9 @@ res.json({
 export const updatePro = async (req:Request , res:Response)=>{
   try {
     const {id} = req.params
-  const {productName, productPrice, Desc,shortDesc} = req.body as product
+  const {productName, productPrice, Desc,shortDesc,stock} = req.body as product
 
-  if(!productName ||productPrice <= 1 ||!Desc ||!shortDesc){
+  if(!productName ||productPrice <= 1 ||!Desc ||!shortDesc ||!stock){
     return res.json({
       "message" : "Your data is missing",
  
@@ -174,7 +220,8 @@ export const updatePro = async (req:Request , res:Response)=>{
       productName,
       productPrice,
       Desc,
-      shortDesc
+      shortDesc,
+      stock
     },
     where:{
       id : +id
@@ -203,6 +250,7 @@ export const removePro = async (req: Request, res:Response)=>{
   const item = await prisma.product.findFirst({
     where:{
       id : +id,
+      isDeleted : false
     }
      
   })
@@ -226,7 +274,8 @@ export const removePro = async (req: Request, res:Response)=>{
 
   res.json({
     message  : "deleted Successfull",
-    isSuccess : true
+    isSuccess : true,
+    item
   })
 
 }
@@ -251,7 +300,6 @@ export const removePro = async (req: Request, res:Response)=>{
   const item = await prisma.product.update({
     where:{
       id :+id,
-
     },
     data:{
       isDeleted : false
@@ -294,7 +342,7 @@ if(!item)
 
 return res.json({
   isSuccess : false,
-  message : "Your product is not stay in the databse"
+  message : "Your product is not Axist"
 })
 
 const del = await prisma.product.delete({
@@ -311,3 +359,68 @@ res.json({
 
 
 } 
+
+// making counter Product
+
+export const counter = async (req:Request,res:Response)=>{
+  const procounter = await prisma.product.aggregate({
+    _count : true
+  })
+  res.json({
+    procounter
+  })
+}
+
+//all restoring
+
+export const allrestoring = async(req:Request,res:Response)=>{
+  const allpro = await prisma.product.findMany({
+    where : {
+      isDeleted : true
+    }
+  })
+   
+  res.json({
+    allpro
+  })
+}
+
+
+//Published
+
+export const publish = async(req:Request,res:Response)=>{
+  try {
+    const {ProductId} = req.params
+
+
+    const checkid = await prisma.product.findFirst({
+      where :{
+        id : +ProductId
+      }
+    })
+ 
+    if(!checkid){
+      return res.json({
+        message : "ProductId is not axist",
+        isSuccess : false
+      })
+    }
+
+    const Published = await prisma.product.update({
+      where :{
+       id : +ProductId
+      },
+      data :{
+        isPublish : true
+      }
+    })
+  
+    res.json({
+      isSuccess : true,
+      result : {...Published}
+    })
+  } catch (error) {
+    res.json(error)
+  }
+
+}
