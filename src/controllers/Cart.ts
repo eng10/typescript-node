@@ -5,34 +5,33 @@ const prisma = new PrismaClient();
 
 
 
-export const cart = async(req:customerUserRequest,res:Response)=>{
+//getone
+// export const getone = async(req:customerUserRequest,res:Response)=>{
 
-    try {
-        
-        const newcart = await prisma.cart.create({
-            data :{
-                userId : req.user?.userId!
-            }
-        })
-        
-        res.json({
-            isSuccess : true,
-            result : {...newcart}
-        })
-
-    } catch (error) {
-        res.status(500).json(error)
-    }
-
-}
-
+//     try {
+//         const one = await prisma.cart.findMany({
+//             where : {
+//                id: req.user?.userId!
+//             }
+//         })
+//         res.json({
+//             result : [...one],
+//             isSuccess : true
+//         })
+//     } catch (error) {
+//         error
+//     }
+// }
 //get all carts
 
-export const getall = async(req:Request,res:Response)=>{
+export const getall = async(req:customerUserRequest,res:Response)=>{
 
     try {
         
         const all = await prisma.cart.findMany({
+            where : {
+              userId : req.user?.userId
+            },
             include :{
                 User:{
                     select :{
@@ -49,7 +48,13 @@ export const getall = async(req:Request,res:Response)=>{
                                 productName : true,
                                 productPrice : true,
                                 Desc : true,
-                                
+                                User : {
+                                    select : {
+                                        lastName: true,
+                                        firstName : true,
+                                        id : true
+                                    }
+                                }
                             }
                         }
                         
@@ -78,7 +83,7 @@ export const getall = async(req:Request,res:Response)=>{
 export const AddtoCart = async(req:customerUserRequest,res:Response)=>{
     try {
         
-      var userCart = await prisma.cart.findFirst({
+      let userCart = await prisma.cart.findFirst({
         where :{
             userId : req.user?.userId
         }
@@ -95,7 +100,6 @@ export const AddtoCart = async(req:customerUserRequest,res:Response)=>{
            id : req.body.productId
           }
       })
-
       if(!findpro){
         return res.json({
             message : `Product ${req.body.productId} is not axist`,
@@ -103,25 +107,20 @@ export const AddtoCart = async(req:customerUserRequest,res:Response)=>{
         })
       }
 
-
       // setCartItem
 
-      const serCart = await prisma.cartItem.create({
+      const setCart = await prisma.cartItem.create({
         data :{
             cartId : userCart.id,
             productId : req.body.productId,
         }
       })
-
       res.json({
         isSuccess : true,
-        result:{...serCart}
+        result:{...setCart}
       })
-
-
     } catch (error) {
         console.log(error)
         res.status(5000).json(error)
     }
-
 }

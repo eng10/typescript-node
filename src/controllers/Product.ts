@@ -116,7 +116,9 @@ export const oneUser = async (req: customerUserRequest, res:Response)=>{
 //============== create=product ==========================//
 //============== create=product ==========================//
 
-
+interface id{
+  id: number
+}
 
 export const createPro = async(req:customerUserRequest,res:Response)=>{
   
@@ -137,13 +139,10 @@ export const createPro = async(req:customerUserRequest,res:Response)=>{
         isSuccess : false
       })
     }
-    
+
     //newProduct
 
     const newpro = await prisma.product.create({
-
-      
-
       data: {
         productName,
         userId: req.user?.userId!,
@@ -151,6 +150,7 @@ export const createPro = async(req:customerUserRequest,res:Response)=>{
         productPrice,
         shortDesc,
         cateId,
+        // cat:{connect: {id: cateId,},},
         stock
       },
       include :{

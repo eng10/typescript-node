@@ -121,7 +121,8 @@ res.json({
             userId : user.id,
             firstName : user.firstName,
             email : user.email,
-            isAdmin : user.isAdmin
+            isAdmin : user.isAdmin,
+            role : user.role
         })
       };
     
@@ -203,19 +204,17 @@ export const makeAdmin = async(req:customerUserRequest,res:Response)=>{
     const{role} = req.body
     if(!req.user?.isAdmin){
      return res.json({
-         message : "unAdmin or UnSupperAdmin",
+         message : " u are unAdmin",
          isSuccess : false
       })
     }
-  
     const user = await prisma.user.findFirst({
         where:{
-            id: req.user?.userId
+            id:+req.params.id
         }
-
     })
     if(!user){
-        res.json({
+       return res.json({
             message : "user is not axist",
             isSuccess : false
         })
@@ -223,15 +222,15 @@ export const makeAdmin = async(req:customerUserRequest,res:Response)=>{
 
     const adminset = await prisma.user.update({
         where:{
-            id : req.user?.userId
+         id : +req.params.id
         },
         data:{
-            isAdmin : !user?.isAdmin,
-            role  
+            isAdmin : !user.isAdmin,
+            role
         }
     })
     res.json({
-        adminset,
+        result : {...adminset},
         isSuccess : true
     })
     

@@ -1,13 +1,12 @@
 import { Router } from "express";
-import { AddtoCart, cart, getall } from "../controllers/Cart";
+import { AddtoCart, getall } from "../controllers/Cart";
 import { decodeToken } from "../helpers/security/jwt";
 const router = Router()
 
 
 
 
-router.post('/new', decodeToken,cart)
-router.get('/all',getall)
+router.get('/all',decodeToken,getall)
 router.post('/add',decodeToken,AddtoCart)
 
 

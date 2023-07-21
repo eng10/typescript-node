@@ -7,6 +7,7 @@ interface userData {
     firstName : string;
     email : string
     isAdmin : Boolean;
+    role : string
 }
 
 // generate token
@@ -50,7 +51,8 @@ export const decodeToken = (req:customerUserRequest,res : Response,next : NextFu
         });
 
 
-        const decode:{userId:number; firstName : string ; email : string; isAdmin:Boolean } | any = 
+        const decode:{userId:number; firstName : string ; email : string; isAdmin:Boolean ;
+            role : string} | any = 
            jwt.verify(token,process.env.Secret_Key || "SECTER-KEY**");
 
             req.user = {...decode};

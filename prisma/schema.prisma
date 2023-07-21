@@ -28,6 +28,7 @@ model User {
   role      role      @default(USER)
   isAdmin   Boolean   @default(false)
   Cart      Cart?
+  order     order[]
 }
 
 model Product {
@@ -50,7 +51,7 @@ model Product {
 
 model category {
   catId     Int      @id @default(autoincrement())
-  catname   String  @unique
+  catname   String   @unique
   catdesc   String
   catimage  String
   createAt  DateTime @default(now())
@@ -61,12 +62,13 @@ model category {
 }
 
 model Cart {
-  id          String     @id @default(uuid())
+  id          Int        @id @default(autoincrement())
   userId      Int        @unique
   User        User       @relation(fields: [userId], references: [id])
   cartItem    cartItem[]
   createdAt   DateTime   @default(now())
   lastUpdated DateTime   @updatedAt
+  order       order[]
 }
 
 // make cartItem
@@ -76,7 +78,7 @@ model Cart {
 model cartItem {
   id          Int      @id @default(autoincrement())
   // cart relationship
-  cartId      String
+  cartId      Int
   Cart        Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
   // product relatioship
   productId   Int
@@ -84,3 +86,22 @@ model cartItem {
   createdAt   DateTime @default(now())
   lastUpdated DateTime @updatedAt
 }
+
+enum status {
+  DELIVERED
+  NOT_DELIVERED
+}
+
+model order {
+  orderId     Int       @id @default(autoincrement())
+  orderStatus status    @default(NOT_DELIVERED)
+  items       Json[]
+  totalPrice  Float
+  taxPrice    Float     @default(0)
+  cartId      Int
+  userId      Int
+  createdAt   DateTime  @default(now())
+  deliveredAt DateTime?
+  user        User      @relation(fields: [userId], references: [id])
+  cart        Cart      @relation(fields: [cartId], references: [id])
+} 
